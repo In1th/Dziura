@@ -1,6 +1,7 @@
 #ifndef loveanime
 #include <iostream>
 #include <vector>
+#include <fstream>
 #define loveanime
 #endif
 
@@ -12,7 +13,7 @@
   * przedmiotów,ekwipunków, sklepów
   * oraz zarządzania nimi
   * -----------------------------------------------
-  * Wersja nieukończona
+  * Wersja 0.2 (01/05/2018)
   * -----------------------------------------------
   * Autor modułu - Mateusz Kruk
   */
@@ -28,7 +29,7 @@
  * 6. Zapis i odczyt ekwipunku z pliku
  * 7. Konstruktor Sklepu (zrobione)
  * 8. Sprawdzanie czy ekwipunek jest pełęn (zrobione)
- * 9. Handlowanie
+ * 9. Handlowanie (zrobione)
  * 10.Zbroje (chyba o tym zapomniałem) (zrobione)
  * 11.Inspekcja przedmiotu (zrobione)
  * -------------------------------------------------------
@@ -68,8 +69,9 @@ Armor::Armor(string n = "",int c = 0,int def = 0,unsigned char t = 5)
     type = t;
 }
 
-Ekwipunek::Ekwipunek(int sz = 0,int i_max = 20,int p_max = 5)
+Ekwipunek::Ekwipunek(string nazwa_pliku = "eq.txt",int sz = 0,int i_max = 20,int p_max = 5)
 {
+    fstream plik; //WiP
     ilosc_zlota = sz;
     przedmioty_max = i_max;
     potki_max = p_max;
@@ -195,6 +197,24 @@ bool Ekwipunek::zmien_ilosc_zlota(int wartosc)
 bool Ekwipunek::czy_pelen(bool ktory)
 {
     int obecne_zuzycie_miejsca;
+
+    if (ktory)
+    {
+        for(int i = 0; i<potki.size(); i++) obecne_zuzycie_miejsca += potki[i].quantity;
+        if (obecne_zuzycie_miejsca < potki_max) return false;
+        else if (obecne_zuzycie_miejsca == potki_max) return true;
+    }
+    else
+    {
+        for(int i = 0; i<przedmioty.size(); i++) obecne_zuzycie_miejsca += przedmioty[i].quantity;
+        if (obecne_zuzycie_miejsca < przedmioty_max) return false;
+        else if (obecne_zuzycie_miejsca == przedmioty_max) return true;
+    }
+}
+
+bool Ekwipunek::czy_bedzie_pelen(bool ktory,int ile_dodane)
+{
+   int obecne_zuzycie_miejsca = ile_dodane;
 
     if (ktory)
     {
@@ -391,7 +411,121 @@ bool Sklep::usun_pancerz(string nazwa)
     return true;
 }
 
-void handel(Ekwipunek kupujacy,Sklep sprzedajacy,string nazwa,int ilosc)
+bool handel(Ekwipunek &kupujacy,Sklep &sprzedajacy,string nazwa,int ilosc)
 {
+    int index_p;
+    int typ = 0;
+
+    for (int i = 0; i<sprzedajacy.bronie.size(); i++)
+    {
+        if (sprzedajacy.bronie[i].name == nazwa)
+        {
+            index_p = i;
+            typ = 1;
+            break;
+        }
+    }
+    if (typ == 0)
+    {
+        for (int i = 0; i<sprzedajacy.zbroje.size(); i++)
+        {
+            if (sprzedajacy.zbroje[i].name == nazwa)
+            {
+                index_p = i;
+                typ = 2;
+                break;
+            }
+        }
+    }
+    if (typ == 0)
+    {
+        for (int i = 0; i<sprzedajacy.potki.size(); i++)
+        {
+            if (sprzedajacy.potki[i].name == nazwa)
+            {
+                index_p = i;
+                typ = 3;
+                break;
+            }
+        }
+    }
+    if (typ == 0)
+    {
+        for (int i = 0; i<sprzedajacy.przedmioty.size(); i++)
+        {
+            if (sprzedajacy.przedmioty[i].name == nazwa)
+            {
+                index_p = i;
+                typ = 4;
+                break;
+            }
+        }
+    }
+    if (typ == 0) return false;
+
+    bool jest_miejsce;
+
+    switch(typ)
+    {
+    case 3:
+    {
+        jest_miejsce = kupujacy.czy_pelen(true);
+        jest_miejsce = kupujacy.czy_bedzie_pelen(true,ilosc);
+    }
+    break;
+    case 4:
+    case 2:
+    case 1:
+    {
+        jest_miejsce = kupujacy.czy_pelen(false);
+        jest_miejsce = kupujacy.czy_bedzie_pelen(false,ilosc);
+    }
+    break;
+    }
+    if (!jest_miejsce) return false;
+
+    bool sa_fundusze;
+
+ switch(typ)
+ {
+ case 1:
+    {
+        Weapon kupowana_bron = sprzedajacy.bronie[index_p];
+        sa_fundusze = kupujacy.zmien_ilosc_zlota(-kupowana_bron.cost*ilosc);
+        if (sa_fundusze) sprzedajacy.zmien_ilosc_zlota(-kupowana_bron.cost*ilosc);
+        else return false;
+        sprzedajacy.usun_bron(kupowana_bron.name);
+        kupujacy.dodaj_bron(kupowana_bron.name,kupowana_bron.cost,kupowana_bron.type,kupowana_bron.damage);
+    } break;
+ case 2:
+    {
+        Armor kupowana_zbroja = sprzedajacy.zbroje[index_p];
+        sa_fundusze = kupujacy.zmien_ilosc_zlota(-kupowana_zbroja.cost*ilosc);
+        if (sa_fundusze) sprzedajacy.zmien_ilosc_zlota(-kupowana_zbroja.cost*ilosc);
+        else return false;
+        sprzedajacy.usun_pancerz(kupowana_zbroja.name);
+        kupujacy.dodaj_pancerz(kupowana_zbroja.name,kupowana_zbroja.cost,kupowana_zbroja.type,kupowana_zbroja.defence);
+    } break;
+ case 3:
+    {
+        Potion kupowana_mikstura = sprzedajacy.potki[index_p];
+        sa_fundusze = kupujacy.zmien_ilosc_zlota(-kupowana_mikstura.cost*ilosc);
+        if (sa_fundusze) sprzedajacy.zmien_ilosc_zlota(-kupowana_mikstura.cost*ilosc);
+        else return false;
+        sprzedajacy.usun_potke(kupowana_mikstura.name,ilosc);
+        kupujacy.dodaj_potke(kupowana_mikstura.name,kupowana_mikstura.cost,kupowana_mikstura.effect,ilosc);
+    } break;
+ case 4:
+    {
+        Item kupowany_przedmiot = sprzedajacy.przedmioty[index_p];
+        sa_fundusze = kupujacy.zmien_ilosc_zlota(-kupowany_przedmiot.cost*ilosc);
+        if (sa_fundusze) sprzedajacy.zmien_ilosc_zlota(-kupowany_przedmiot.cost*ilosc);
+        else return false;
+        sprzedajacy.usun_przedmiot(kupowany_przedmiot.name,ilosc);
+        kupujacy.dodaj_przedmiot(kupowany_przedmiot.name,kupowany_przedmiot.cost,ilosc);
+    } break;
+ }
+
+    return true;
 
 }
