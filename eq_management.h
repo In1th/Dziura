@@ -10,7 +10,7 @@ using namespace std;
   * W tym pliku znajdują się wszystkie definicje klas
   * przedmiotów,ekwipunków oraz sklepów
   * -------------------------------------------------
-  * Wersja nieukończona
+  * Wersja 1.01 (01/05/2018 r.)
   * -------------------------------------------------
   * Autor pliku nagłówkowego - Mateusz Kruk
   */
@@ -88,9 +88,10 @@ public:
     vector<Item> przedmioty;
 
 
-    Ekwipunek(int,int,int); //Kontruktor klasy
+    Ekwipunek(string,int,int,int); //Kontruktor klasy
 
     bool czy_pelen(bool ktory); //fałsz dla przedmiotów, prawda dla mikstur
+    bool czy_bedzie_pelen(bool ktory,int ile_dodane);
 
     bool zmien_ilosc_zlota(int wartosc);
 
