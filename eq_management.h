@@ -10,22 +10,10 @@ using namespace std;
   * W tym pliku znajdują się wszystkie definicje klas
   * przedmiotów,ekwipunków oraz sklepów
   * -------------------------------------------------
-  * Wersja 1.01 (01/05/2018 r.)
+  * Wersja 1.01.1 (01/25/2019 r.)
   * -------------------------------------------------
   * Autor pliku nagłówkowego - Mateusz Kruk
   */
-
-/* --------------------------------------------------
- * Elementy pliku nagłówkowego do zrobienia
- * --------------------------------------------------
- * 1. Klasa Przedmiot (zrobiona)
- * 2. Klasa Broń (zrobiona)
- * 3. Klasa Mikstura (zrobiona)
- * 4. Klasa Ekwipunek (zrobiona)
- * 5. Klasa Sklep (zrobione)
- * 6. Klasa Pancerz (zrobione)
- * --------------------------------------------------
- */
 
 class Item //klasa opisująca dowolny inny przedmiot niż te poniżej
 {
@@ -88,7 +76,7 @@ public:
     vector<Item> przedmioty;
 
 
-    Ekwipunek(string,int,int,int); //Kontruktor klasy
+    Ekwipunek(int,int,int); //Kontruktor klasy
 
     bool czy_pelen(bool ktory); //fałsz dla przedmiotów, prawda dla mikstur
     bool czy_bedzie_pelen(bool ktory,int ile_dodane);

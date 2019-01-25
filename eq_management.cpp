@@ -13,27 +13,27 @@
   * przedmiotów,ekwipunków, sklepów
   * oraz zarządzania nimi
   * -----------------------------------------------
-  * Wersja 0.2 (01/05/2018)
+  * Wersja 1.0 (01/25/2019)
   * -----------------------------------------------
   * Autor modułu - Mateusz Kruk
   */
 
-/* -------------------------------------------------------
- * Elementy modułu do zrobienia
- * -------------------------------------------------------
- * 1. Konstruktory przedmiotów i ekwipunku (zrobione)
- * 2. Zmienianie ilości przedmiotów (zrobione)
- * 3. Wypisywanie ekwipunku (zrobione)
- * 4. Zmienianie ilości sztuk złota (zrobione)
- * 5. Dodawanie i usuwanie elementów ekwipunku (zrobione)
- * 6. Zapis i odczyt ekwipunku z pliku
- * 7. Konstruktor Sklepu (zrobione)
- * 8. Sprawdzanie czy ekwipunek jest pełęn (zrobione)
- * 9. Handlowanie (zrobione)
- * 10.Zbroje (chyba o tym zapomniałem) (zrobione)
- * 11.Inspekcja przedmiotu (zrobione)
- * -------------------------------------------------------
+/* ---------------------------------------------------
+ * WAŻNA INFROMACJA - WZÓR ZAPISU EKWIPUNKU DO PLIKU
+ * ---------------------------------------------------
+ * 1. Maksymalna ilość przedmiotów w ekwipunku
+ * 2. Maksymalna ilość mikstur w ekwipunku
+ * 3. Ilość złota w ekwipunku
+ * 4. Bronie
+ *  - Jeżeli nie ma broni to jest wtedy napis "nic"
+ * 5. Pancerz
+ *  - Jeżeli nie ma pancerzu to jest wtedy napis "nic"
+ * 6. Ilość mikstur w ekwipunku
+ * 7. Mikstury
+ * 8. Ilość przedmiotów w ekwipunku
+ * 9. Przedmioty
  */
+
 
 //Kontruktory
 
@@ -69,12 +69,76 @@ Armor::Armor(string n = "",int c = 0,int def = 0,unsigned char t = 5)
     type = t;
 }
 
-Ekwipunek::Ekwipunek(string nazwa_pliku = "eq.txt",int sz = 0,int i_max = 20,int p_max = 5)
+Ekwipunek::Ekwipunek(int sz = 0,int i_max = 20,int p_max = 5)
 {
-    fstream plik; //WiP
-    ilosc_zlota = sz;
-    przedmioty_max = i_max;
-    potki_max = p_max;
+    ifstream plik("eq_gracza.txt"); //WiP
+    if (plik)
+        {
+        plik >> przedmioty_max;
+        plik >> potki_max;
+        plik >> ilosc_zlota;
+        for(int i = 0;i<2;i++) //Wczytywanie broni
+        {
+            string nazwa;
+            plik >> nazwa;
+            if (nazwa != "nic")
+            {
+                int koszt, obrazenia;
+                unsigned char typ;
+                plik >> koszt;
+                plik >> obrazenia;
+                plik >> typ;
+                Weapon nowa_bron(nazwa,koszt,1,obrazenia,typ);
+                bron[i] = nowa_bron;
+            }
+        }
+        for(int i = 0;i<5;i++) //Wczytywanie zbroi
+        {
+            string nazwa;
+            plik >> nazwa;
+            if (nazwa != "nic")
+            {
+                int koszt, obrona;
+                unsigned char typ;
+                plik >> koszt;
+                plik >> obrona;
+                plik >> typ;
+                Armor nowy_pancerz(nazwa,koszt,obrona,typ);
+                pancerz[i] = nowy_pancerz;
+            }
+        }
+        int ilosc_potek, ilosc_przedmiotow;
+        plik >> ilosc_potek;
+        for (int i = 0; i < ilosc_potek; i++) //Wczytywanie potek
+        {
+          string nazwa;
+          int koszt, ilosc;
+          unsigned char efekt;
+          plik >> nazwa;
+          plik >> koszt;
+          plik >> ilosc;
+          plik >> efekt;
+          Potion nowa_potka(nazwa,koszt,ilosc,efekt);
+          potki.push_back(nowa_potka);
+        }
+        plik >> ilosc_przedmiotow;
+        for (int i = 0; i < ilosc_przedmiotow; i++) //Wczytywanie przedmiotów
+        {
+          string nazwa;
+          int koszt, ilosc;
+          plik >> nazwa;
+          plik >> koszt;
+          plik >> ilosc;
+          Item nowy_przedmiot(nazwa,koszt,ilosc);
+          przedmioty.push_back(nowy_przedmiot);
+        }
+        }
+    else
+        {
+        ilosc_zlota = sz;
+        przedmioty_max = i_max;
+        potki_max = p_max;
+        }
 }
 
 Sklep::Sklep(int sz = 100)
@@ -87,6 +151,61 @@ Sklep::Sklep(int sz = 100)
 void Item::change_quantity(int ammount)
 {
     quantity += ammount;
+}
+
+//Zapis ekwipunku
+
+void Ekwipunek::zapisz_ekwipunek()
+{
+    ofstream plik("eq_gracza.txt");
+    if (plik)
+    {
+        plik << przedmioty_max <<endl;
+        plik << potki_max << endl;
+        plik << ilosc_zlota << endl;
+        for (int i = 0; i < 2; i++)
+        {
+            if (bron[i].name == "") plik << "nic" << endl;
+            else
+                {
+                plik << bron[i].name << endl;
+                plik << bron[i].cost << endl;
+                plik << bron[i].damage << endl;
+                plik << bron[i].type << endl;
+                }
+        }
+        for (int i = 0; i < 5; i++)
+        {
+            if (pancerz[i].name == "") plik << "nic" << endl;
+            else
+                {
+                plik << pancerz[i].name << endl;
+                plik << pancerz[i].cost << endl;
+                plik << pancerz[i].defence << endl;
+                plik << pancerz[i].type << endl;
+                }
+        }
+        plik << potki.size() << endl;
+        for (int i = 0; i < potki.size();i++)
+        {
+            plik << potki[i].name << endl;
+            plik << potki[i].cost << endl;
+            plik << potki[i].quantity << endl;
+            plik << potki[i].effect << endl;
+        }
+        plik << przedmioty.size() << endl;
+        for (int i = 0; i < przedmioty.size();i++)
+        {
+            plik << przedmioty[i].name << endl;
+            plik << przedmioty[i].cost << endl;
+            plik << przedmioty[i].quantity << endl;
+        }
+
+    }
+    else
+    {
+        cout<<"Napotkano blad!"<<endl;
+    }
 }
 
 //Inspektowanie przedmiotów
