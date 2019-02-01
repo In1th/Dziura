@@ -2,6 +2,11 @@
 
 using namespace std;
 
+/* Notka do dawania ścieżki do pliku ze stringa
+ * string const nazwaPliku("C:/Nanoc/scores.txt");
+ * ofstream mojStrumien(nazwaPliku.c_str());
+ */
+
 int main()
 {
     Ekwipunek eq_gracza;
@@ -15,6 +20,9 @@ int main()
         cout<<"1 - wypisz ekwipunek"<<endl;
         cout<<"2 - dodaj/odejmij zloto"<<endl;
         cout<<"3 - dodaj/usun przedmiot"<<endl;
+        cout<<"4 - obejrz przedmiot"<<endl;
+        cout<<"5 - Wejdz do sklepu"<<endl;
+        cout<<"6 - Zapisz ekwipunek"<<endl;
         cout<<"-----------------------------------"<<endl;
         cin>>wybor;
         switch(wybor)
